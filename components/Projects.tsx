@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Badge } from "./ui/badge"
-import { Monitor, Smartphone, Layout, Palette, ExternalLink, Github, X, Box, FileImage, Tag } from "lucide-react"
+import { Monitor, Smartphone, Layout, Palette, ExternalLink, Github, Box, FileImage, Tag } from "lucide-react"
 import { Meteors } from "./aceternity/meteors"
 
 type ProjectCategory = "all" | "websites" | "webapps" | "mobileapps" | "ux" | "ui" | "3dmodels" | "flyers" | "logos"
@@ -24,6 +24,8 @@ export default function Projects({ projectPage }: { projectPage: boolean }) {
   const [activeCategory, setActiveCategory] = useState<ProjectCategory>("all")
   const [hoveredProject, setHoveredProject] = useState<string | null>(null)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const projectsPerPage = 6
 
   const projects: Project[] = [
     {
@@ -163,7 +165,7 @@ export default function Projects({ projectPage }: { projectPage: boolean }) {
       description:
         "Wavdev Bootcamp is a comprehensive coding bootcamp designed to equip aspiring developers with the skills and knowledge needed to excel in the ever-evolving tech industry.",
       image: "projects/websites/cww.png",
-      tech: [],
+      tech: ["React", "Next.js", "Tailwind CSS"],
       github: "#",
       demo: "#",
       featured: true,
@@ -176,7 +178,7 @@ export default function Projects({ projectPage }: { projectPage: boolean }) {
       description:
         "Real-time chat application with modern messaging features, file sharing, and responsive design for seamless communication.",
       image: "projects/websites/limkokwing-inno-hub.png",
-      tech: [""],
+      tech: ["React", "Socket.io", "Node.js", "MongoDB"],
       github: "#",
       demo: "#",
       featured: false,
@@ -190,15 +192,28 @@ export default function Projects({ projectPage }: { projectPage: boolean }) {
     { id: "all" as ProjectCategory, label: "All Projects", icon: Layout },
     { id: "websites" as ProjectCategory, label: "Websites", icon: Monitor },
     // { id: "webapps" as ProjectCategory, label: "Web Apps", icon: Smartphone },
-    { id: "mobileapps" as ProjectCategory, label: "Mobile Apps", icon: Smartphone },
+    // { id: "mobileapps" as ProjectCategory, label: "Mobile Apps", icon: Smartphone },
     { id: "ux" as ProjectCategory, label: "UX Design", icon: Palette },
     { id: "ui" as ProjectCategory, label: "UI Design", icon: Palette },
     // { id: "3dmodels" as ProjectCategory, label: "3D Models", icon: Box },
-    { id: "flyers" as ProjectCategory, label: "Flyers", icon: FileImage },
-    { id: "logos" as ProjectCategory, label: "Logos", icon: Tag },
+    // { id: "flyers" as ProjectCategory, label: "Flyers", icon: FileImage },
+    // { id: "logos" as ProjectCategory, label: "Logos", icon: Tag },
   ]
 
   const filteredProjects = activeCategory === "all" ? projects : projects.filter((p) => p.category === activeCategory)
+  
+  const indexOfLastProject = currentPage * projectsPerPage
+  const indexOfFirstProject = indexOfLastProject - projectsPerPage
+  const currentProjects = filteredProjects.slice(indexOfFirstProject, indexOfLastProject)
+  const totalPages = Math.ceil(filteredProjects.length / projectsPerPage)
+  
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [activeCategory])
+  
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber)
+  const nextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages))
+  const prevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1))
 
   return (
     <section className="py-20 px-4 relative overflow-hidden">
@@ -246,7 +261,7 @@ export default function Projects({ projectPage }: { projectPage: boolean }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          {filteredProjects.slice(0, !projectPage ? 4 : filteredProjects.length).map((project) => (
+          {currentProjects.map((project) => (
             <div
               key={project.title}
               onClick={() => setSelectedProject(project)}
@@ -262,23 +277,19 @@ export default function Projects({ projectPage }: { projectPage: boolean }) {
                   alt={project.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                 />
-                {/* Animated overlay gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-500"></div>
               </div>
 
               {/* Content Overlay */}
               <div className="absolute w-full inset-0 p-8 flex flex-col justify-end">
-                {/* Title with slide-up animation */}
                 <h4 className="text-3xl font-semibold text-white mb-3 transform transition-all duration-500 group-hover:translate-y-0 translate-y-2">
                   {project.title}
                 </h4>
 
-                {/* Description - appears on hover */}
                 <p className="text-white/90 text-sm mb-4 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-75 line-clamp-2">
                   {project.description || "Click to view this amazing project"}
                 </p>
 
-                {/* Tech badges - slide in from bottom */}
                 {project.tech.length > 0 && project.tech[0] !== "" && (
                   <div className="flex flex-wrap gap-2 mb-4 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-100">
                     {project.tech.slice(0, 4).map((tech) => (
@@ -289,20 +300,30 @@ export default function Projects({ projectPage }: { projectPage: boolean }) {
                   </div>
                 )}
 
-                {/* Action buttons - fade in on hover */}
                 <div className="flex gap-3 opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-150">
-                  <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 hover:bg-white/20 transition-colors">
+                  <a
+                    href={project.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 hover:bg-white/20 transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <ExternalLink className="h-4 w-4 text-white" />
                     <span className="text-white text-sm font-medium">View Project</span>
-                  </div>
+                  </a>
                   {project.github !== "#" && (
-                    <div className="flex items-center justify-center w-10 h-10 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 hover:bg-white/20 transition-colors">
+                    <a
+                      href={project.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center w-10 h-10 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 hover:bg-white/20 transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Github className="h-4 w-4 text-white" />
-                    </div>
+                    </a>
                   )}
                 </div>
 
-                {/* Animated border effect */}
                 <div
                   className={`absolute inset-0 border-2 border-primary rounded-lg transition-opacity duration-500 ${
                     hoveredProject === project.title ? "opacity-100" : "opacity-0"
@@ -313,7 +334,6 @@ export default function Projects({ projectPage }: { projectPage: boolean }) {
                 ></div>
               </div>
 
-              {/* Corner accent - appears on hover */}
               <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                 <div className="w-12 h-12 border-t-2 border-r-2 border-white/50 rounded-tr-lg"></div>
               </div>
@@ -326,111 +346,67 @@ export default function Projects({ projectPage }: { projectPage: boolean }) {
             <p className="text-muted-foreground">No projects found in this category.</p>
           </div>
         )}
-      </div>
 
-      {/* Full-screen modal with blur background */}
-      {selectedProject && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300"
-          onClick={() => setSelectedProject(null)}
-        >
-          <div
-            className="relative w-full max-w-5xl max-h-[90vh] bg-background/95 backdrop-blur-xl rounded-2xl shadow-2xl border overflow-y-auto animate-in zoom-in-95 duration-300"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close button */}
+        {/* Pagination */}
+        {filteredProjects.length > projectsPerPage && (
+          <div className="mt-12 flex justify-center items-center space-x-2">
             <button
-              onClick={() => setSelectedProject(null)}
-              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-background/80 backdrop-blur-sm border hover:bg-muted transition-colors shadow-lg"
-              aria-label="Close modal"
+              onClick={prevPage}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded-md transition-colors ${
+                currentPage === 1 
+                  ? 'opacity-50 cursor-not-allowed text-muted-foreground' 
+                  : 'hover:bg-muted'
+              }`}
+              aria-label="Previous page"
             >
-              <X className="h-6 w-6" />
+              ← Previous
             </button>
 
-            {/* Project Image */}
-            <div className="relative h-[400px] overflow-hidden rounded-t-2xl">
-              <img
-                src={selectedProject.image || "/placeholder.svg"}
-                alt={selectedProject.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent"></div>
-            </div>
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const pageNum = i + 1
+              const showPage = totalPages <= 5 || 
+                pageNum === 1 || 
+                pageNum === totalPages || 
+                Math.abs(pageNum - currentPage) <= 1
 
-            {/* Project Details */}
-            <div className="p-8 space-y-6">
-              {/* Title and Category */}
-              <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <Badge variant="secondary" className="text-sm">
-                    {selectedProject.category}
-                  </Badge>
-                  {selectedProject.featured && (
-                    <Badge variant="default" className="text-sm">
-                      Featured
-                    </Badge>
-                  )}
-                </div>
-                <h2 className="text-4xl font-bold mb-4">{selectedProject.title}</h2>
-                <p className="text-lg text-muted-foreground leading-relaxed">
-                  {selectedProject.description ||
-                    "An amazing project showcasing modern web development practices and cutting-edge technologies."}
-                </p>
-              </div>
+              if (!showPage) {
+                if (i === 1 && currentPage > 3) return <span key="ellipsis-start" className="px-2">...</span>
+                if (i === totalPages - 2 && currentPage < totalPages - 2) return <span key="ellipsis-end" className="px-2">...</span>
+                return null
+              }
 
-              {/* Tech Stack */}
-              {selectedProject.tech.length > 0 && selectedProject.tech[0] !== "" && (
-                <div>
-                  <h3 className="text-xl font-semibold mb-3">Technologies Used</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedProject.tech.map((tech) => (
-                      <Badge key={tech} variant="outline" className="text-sm px-4 py-2">
-                        {tech}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Stats */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-lg bg-muted/50 border">
-                  <p className="text-sm text-muted-foreground mb-1">GitHub Stars</p>
-                  <p className="text-2xl font-bold">{selectedProject.stats.stars}</p>
-                </div>
-                <div className="p-4 rounded-lg bg-muted/50 border">
-                  <p className="text-sm text-muted-foreground mb-1">Views</p>
-                  <p className="text-2xl font-bold">{selectedProject.stats.views}</p>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-4 pt-4">
-                <a
-                  href={selectedProject.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors shadow-lg"
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => paginate(pageNum)}
+                  aria-current={currentPage === pageNum ? "page" : undefined}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                    currentPage === pageNum 
+                      ? 'bg-primary text-primary-foreground font-medium' 
+                      : 'hover:bg-muted'
+                  }`}
                 >
-                  <ExternalLink className="h-5 w-5" />
-                  <span className="font-medium">View Live Project</span>
-                </a>
-                {selectedProject.github !== "#" && (
-                  <a
-                    href={selectedProject.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 px-6 py-3 bg-muted hover:bg-muted/80 rounded-lg transition-colors border"
-                  >
-                    <Github className="h-5 w-5" />
-                    <span className="font-medium">View Code</span>
-                  </a>
-                )}
-              </div>
-            </div>
+                  {pageNum}
+                </button>
+              )
+            })}
+
+            <button
+              onClick={nextPage}
+              disabled={currentPage === totalPages}
+              className={`px-4 py-2 rounded-md transition-colors ${
+                currentPage === totalPages 
+                  ? 'opacity-50 cursor-not-allowed text-muted-foreground' 
+                  : 'hover:bg-muted'
+              }`}
+              aria-label="Next page"
+            >
+              Next →
+            </button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </section>
   )
 }

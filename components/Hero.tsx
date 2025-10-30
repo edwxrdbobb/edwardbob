@@ -1,6 +1,6 @@
 "use client"
 import { Button } from "./ui/button"
-import { ArrowDown, Github, Linkedin, Mail } from "lucide-react"
+import { ArrowDown, Download, Github, Linkedin, Mail } from "lucide-react"
 import { TypewriterEffectSmooth } from "./aceternity/typewriter-effect"
 import { ImageWithFallback } from "./figma/ImageWithFallback"
 import { NeuralNetworkBackground } from "./aceternity/neural-network-bg"
@@ -71,9 +71,17 @@ export function Hero() {
             </div>
 
             <div className="flex justify-center lg:justify-start space-x-6 pt-8">
-              <Button variant="ghost" size="icon">
+              <a href="https://github.com/edwxrdbobb" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-muted hover:bg-muted/80 transition-colors" aria-label="GitHub">
                 <Github className="h-5 w-5" />
-              </Button>
+              </a>
+              <a 
+                href="/EDWARD BOB KAMARA RESUME.pdf" 
+                download="Edward_Bob_Kamara_Resume.pdf"
+                className="p-2 rounded-full bg-muted hover:bg-muted/80 transition-colors"
+                aria-label="Download CV"
+              >
+                <Download className="h-5 w-5" />
+              </a>
               <Button variant="ghost" size="icon">
                 <Linkedin className="h-5 w-5" />
               </Button>
